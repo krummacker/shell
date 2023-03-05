@@ -1,0 +1,36 @@
+#!/bin/bash
+#
+# =============================================================================
+# full-backup
+# =============================================================================
+#
+# Creates a backup of all important files in the system. This script iterates
+# over a list of directories containing these files and puts them into a
+# tar archive in a specified directory. 
+#
+
+# the directory where to put tar archives in
+REMOVABLE_DISK=/mnt/removable
+
+NOW=$(date +"%Y%m%d-%H%M")
+
+echo "starting full backup"
+EXCLUDES_FILE=/tmp/excludes.large.$$
+    
+# let's check whether the removable media is present
+REMOVABLE_MOUNTED=$(df | grep $REMOVABLE_DISK | wc -l)
+if [ "$REMOVABLE_MOUNTED" = "0" ] ;
+then
+    echo -n "removable disk not yet mounted - trying to mount it ..."
+    mount /mnt/removable
+    echo " mounted"
+else
+    echo "removable disk already there - good"
+fi
+
+ARCHIVE_LOCATION=$REMOVABLE_DISK/full-$NOW.tar.gz.gpg
+
+# and now tar the stuff all at once
+tar cz -X /etc/backup/full.excludes / \
+    | gpg -c --output $ARCHIVE_LOCATION
+

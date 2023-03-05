@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# ip-down-master
+# ==============
+
+# führt für jeden User das Skriptb ~/.ip-down aus, so vorhanden
+
+# Datum       Autor            Änderungen
+# -------------------------------------------------------------------------
+# 23.01.2000  Dirk Krummacker  aus "hangup" neu erzeugt
+
+# Für jeden User das Skript ausführen
+{
+    echo "started checking for user defined tasks"
+    for USERDIR in /home/* ; do
+
+        test -e $USERDIR/.ip-down && {
+            USER=${USERDIR##*/}
+            echo "starting script $USERDIR/.ip-down"
+            su -l $USER -c $USERDIR/.ip-down | logger -t "ip-down($USER)"
+            echo "finished script $USERDIR/.ip-down"
+        }
+    done
+    echo "finished checking for user defined tasks"
+} | logger -t ip-down
+

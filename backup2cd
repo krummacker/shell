@@ -1,0 +1,60 @@
+#!/bin/sh
+
+# backup2cd
+# =========
+
+# Sichern des aktuellen Backups auf CD-Recordables
+
+# Autor             Datum        Änderungen
+# --------------------------------------------------------------------
+# Dirk Krummacker   16.04.2000   umbenannt, nach /usr/local/sbin
+#                                verschoben, wieder 3 CDs gebrannt
+# Dirk Krummacker   16.01.2000   Es werden wieder 2 CDs gebrannt, aber
+#                                dafür mit Pipe
+# Dirk Krummacker   30.11.1999   Es werden jetzt 3 CDs gebrannt
+# Dirk Krummacker   18.04.1999   aus disk-backup neu erstellt
+
+echo "Backup auf CD-Brenner gestartet..."
+
+# prüfen, ob /backup bereits gemountet
+if [ ! -f /backup/archiv-home.tgz ] ; then
+    echo "Mounte /backup..."
+    mount /backup
+fi
+
+# Verzeichnisse vorbereiten
+echo "Bereite Verzeichnisse vor..."
+mkdir /backup/cdr_1
+mkdir /backup/cdr_2
+mkdir /backup/cdr_3
+mv /backup/archiv-opt.tgz /backup/cdr_1
+mv /backup/archiv-usr-local.tgz /backup/cdr_2
+mv /backup/*.* /backup/cdr_3
+
+# erste CD brennen (direkte Pipe von mkisofs nach cdrecord)
+echo "Bitte leere CD einlegen und <Return> drücken..."
+read
+mkisofs -R /backup/cdr_1 | cdrecord dev=/dev/sg1 speed=4 -eject -
+
+# zweite CD brennen (direkte Pipe von mkisofs nach cdrecord)
+echo "Bitte leere CD einlegen und <Return> drücken..."
+read
+mkisofs -R /backup/cdr_2 | cdrecord dev=/dev/sg1 speed=4 -eject -
+
+# dritte CD brennen (direkte Pipe von mkisofs nach cdrecord)
+echo "Bitte leere CD einlegen und <Return> drücken..."
+read
+mkisofs -R /backup/cdr_3 | cdrecord dev=/dev/sg1 speed=4 -eject -
+
+# Verzeichnisse wieder auflösen
+echo Loese Verzeichnisse wieder auf...
+mv /backup/cdr_1/* /backup
+mv /backup/cdr_2/* /backup
+mv /backup/cdr_3/* /backup
+rmdir /backup/cdr_1
+rmdir /backup/cdr_2
+rmdir /backup/cdr_3
+
+# Backup-Partition wieder umounten
+echo "Unmounte Backup-Partition..."
+umount /backup

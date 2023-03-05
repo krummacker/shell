@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+# Clones my repos from GitLab and stores the newest commits to repos of the 
+# same name in GitHub and BitBucket. This is the behaviour when no command line
+# argument has been specified. If there is an argument then it denotes te repo 
+# to be synced.
+
+function sync_repo() {
+    git clone git@gitlab.com:dirk.krummacker/$1.git
+    cd $1
+
+    # GitHub
+    git remote remove origin
+    git remote add origin git@github.com:krummacker/$1.git
+    git push -u origin main
+    
+    # BitBucket
+    git remote remove origin
+    git remote add origin git@bitbucket.org:krummacker/$1.git
+    git push -u origin main
+    
+    cd ..
+}
+
+mkdir ~/Desktop/tmp
+cd ~/Desktop/tmp
+
+if [ "$1" = "" ] ;
+then
+    values=(
+        contacts-service
+        hofstadter
+        java-playground
+        jpa-rest
+        jsorter
+        Levenshtein
+        NetSorter
+        PrimeAnalyzer
+        sorter
+    )
+    for name in "${values[@]}"; do
+        sync_repo $name
+    done
+else
+    sync_repo $1
+fi
+
+rm -rf ~/Desktop/tmp

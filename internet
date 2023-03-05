@@ -1,0 +1,65 @@
+#!/bin/sh
+
+# internet - Skript zum Abholen von Mails & News
+# ==============================================
+
+# Datum       Autor            Änderungen
+# -------------------------------------------------------------------------
+# 22.01.2000  Dirk Krummacker  Log-Einträge anstelle von echo (logger -s -t internet)
+# 17.01.2000  Dirk Krummacker  Zeitserver gewechselt
+# 16.01.2000  Dirk Krummacker  .fetchmailrc wieder in /~
+# 13.01.2000  Dirk Krummacker  sleep am Schluß eingebaut, wegen kisdn-Bug
+# 09.01.2000  Dirk Krummacker  neue Leafnode-Version
+# 02.01.2000  Dirk Krummacker  automatische Einwahl entfernt, stattdessen
+#                              dial und hangup eingeführt, sendmail -q wieder
+#                              eingebaut, sleep eingebaut
+# 04.12.1999  Dirk Krummacker  texpire nach cron.daily.local ausgelagert
+# 12.09.1999  Dirk Krummacker  texpire wieder aktiviert
+# 05.09.1999  Dirk Krummacker  fetch nach Umstellung wieder aktiviert
+# 26.06.1999  Dirk Krummacker  Ausgabe der IP-Adresse
+# 01.05.1999  Dirk Krummacker  Prüfung auf letzten fetch entfernt, in
+#                              "internet" umbenannt, logger -s -t internets eingefügt
+# 17.04.1999  Dirk Krummacker  Anfrage an Zeitserver eingebaut, aus Startup
+#                              herausgenommen
+# 28.02.1999  Dirk Krummacker  Java-Programm durch Shellscript abgelöst,
+#                              sendmail eingebaut
+# 14.02.1999  Dirk Krummacker  Mail & News werden nur noch maximal alle 6h
+#                              abgeholt
+# 12.02.1999  Dirk Krummacker  auf ISDN angepaßt
+# 13.01.1999  Dirk Krummacker  aus Zusammenlegen von ppp-start und
+#                              modem-stop neu erzeugt
+
+# Aufnahme der Verbindung
+logger -s -t internet "Nehme Verbindung auf..."
+isdnctrl dial ippp0
+sleep 5
+
+# Anzeige der IP-Adresse
+ifconfig ippp0 | awk '/inet addr/{print substr($2,index($2,":")+1)}' 
+
+# Uhrzeit anpassen
+logger -s -t internet "Justiere Systemzeit..."
+/usr/sbin/netdate ntps1-1.rz.Uni-Osnabrueck.DE
+/usr/sbin/netdate ntp2.fau.de
+/sbin/hwclock --utc --systohc  2>&1
+logger -s -t internet "Justierung der Systemzeit beendet."
+
+# Einsammeln der Mails per fetchmail
+logger -s -t internet "Starte fetchmail..."
+su -l dirk -c "fetchmail -a -s 2>&1"
+logger -s -t internet "fetchmail beendet."
+
+# Neue Postings holen
+logger -s -t internet "Starte fetch..."
+su news -l -c "/usr/local/sbin/fetchnews 2>&1"
+logger -s -t internet "fetch beendet."
+
+# Verschicken von aufgelaufenen Mails
+logger -s -t internet "Starte sendmail..."
+sendmail -v -q
+logger -s -t internet "sendmail beendet."
+
+# Beenden der Verbindung
+sleep 1
+logger -s -t internet "Beende Verbindung..."
+isdnctrl hangup ippp0

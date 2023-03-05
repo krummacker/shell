@@ -1,0 +1,83 @@
+#!/bin/sh
+
+# jmake - Erzeugt alle notwendigen .class-Files neu
+# =======================================
+
+# Datum:	8. Januar 1999
+# Autor:		Dirk Krummacker
+# Änderungen:	Festlegen eines Root-Directories für Java-Sourcen möglich, Projekt jmake
+#		eingestellt, Funktionalitäten sind in jdoc aufgegangen
+
+# Datum:	3. Januar 1999
+# Autor:		Dirk Krummacker
+# Änderungen:	Backup-Verzeichnis verlegt, Sourcen werden automatisch zusammengesucht
+
+# Datum:	13. Dezember 1998
+# Autor:		Dirk Krummacker
+# Änderungen:	neue Packages erstellt, Sicherung mit Datum versehen, löscht nun auch .BAK-Dateien
+
+# Datum:	4. Dezember 1998
+# Autor:		Dirk Krummacker
+# Änderungen:	Grundlegende Funktionalitäten erstellt
+
+# Setzen des Root-Directories für Java-Sourcen
+JAVASRCDIR=/home/dirke/private/source/java/de/krummacker
+
+# Logeintrag
+logger -s -t jmake "Loesche alte CLASS-Files"
+
+# Schleife für jedes alte CLASS-File
+for CFILE in `find $JAVASRCDIR -iname "*.class"` ; do
+
+	# Debugging: Ausgabe des CLASS-File-Namens
+	# echo Loesche CLASS-File $CFILE
+
+	# CLASS-File löschen
+	rm $CFILE
+
+done
+
+# Logeintrag
+logger -s -t jmake "Loesche alte BAK-Files"
+
+# Schleife für jedes alte BAK-File
+for BFILE in `find $JAVASRCDIR -iname "*.BAK"` ; do
+
+	# Debugging: Ausgabe des BAK-File-Namens
+	# echo Loesche BAK-File $BFILE
+
+	# BAK-File löschen
+	rm $BFILE
+
+done
+
+# Logeintrag
+logger -s -t jmake "Loesche alte Backup-Files"
+
+# Schleife für jedes alte Backup-File
+for AFILE in `find $JAVASRCDIR -iname "*.java~"` ; do
+
+	# Debugging: Ausgabe des Backup-File-Namens
+	# echo Loesche Backup-File $AFILE
+
+	# Backup-File löschen
+	rm $AFILE
+
+done
+
+# Logeintrag
+logger -s -t jmake "Sichere Sourcen"
+
+# aktuelles Datum ermitteln
+DATESTRING=`date +"%y%m%d%H%M%S"`
+
+# Sichern
+packer $JAVASRCDIR 2>/dev/null
+mv $JAVASRCDIR.tar.gz /home/dirke/.javbackup/javasrc-$DATESTRING.tar.gz
+
+# Logeintrag
+logger -s -t jmake "Erzeuge neue CLASS-Files"
+
+# Erzeugen (Dateien in controller/main reichen aus)
+javac $JAVASRCDIR/controller/main/*.java
+

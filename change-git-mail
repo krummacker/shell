@@ -1,0 +1,27 @@
+# Loop over all the commits and use the --commit-filter
+# to change only the email addresses
+
+git filter-branch --commit-filter '
+
+    # check to see if the committer (email is the desired one)
+    if [ "$GIT_COMMITTER_EMAIL" = "krummacker@users.noreply.github.com" ];
+    #if [ "$GIT_COMMITTER_EMAIL" = "dirk.krummacker@gmail.com" ];
+    #if [ "$GIT_COMMITTER_EMAIL" = "krummacker@icloud.com" ];
+    #if [ "$GIT_COMMITTER_EMAIL" = "dirk@dirks-macbook-pro.home" ];
+    #if [ "$GIT_COMMITTER_EMAIL" = "dirk@Dirk-Krummackers-MacBook-Pro-7.local" ];
+    then
+            # Set the new desired name
+            GIT_COMMITTER_NAME="Dirk Krummacker";
+            GIT_AUTHOR_NAME="Dirk Krummacker";
+
+            # Set the new desired email
+            GIT_COMMITTER_EMAIL="rasen_02cider@icloud.com";
+            GIT_AUTHOR_EMAIL="rasen_02cider@icloud.com";
+
+            # (re) commit with the updated information
+            git commit-tree "$@";
+    else
+            # No need to update so commit as is
+            git commit-tree "$@";
+    fi' 
+HEAD

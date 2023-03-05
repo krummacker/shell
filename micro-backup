@@ -1,0 +1,30 @@
+#!/bin/bash
+#
+# =============================================================================
+# micro-backup
+# =============================================================================
+#
+# Creates a backup of only the most important files in the system.
+#
+
+# the directory where to put tar archives in
+ARCHIVE_DIR=/var/backup/micro
+
+# number of days to keep old backup files
+LOCAL_PRESERVE_TIME=356
+
+echo "starting micro backup"
+
+NOW=$(date +"%Y%m%d-%H%M")
+ARCHIVE_LOCATION=$ARCHIVE_DIR/micro-$NOW.tar.gz
+
+# tar the stuff all at once
+cat /etc/backup/small.excludes /etc/backup/micro.excludes > /tmp/all.excludes.$NOW
+tar cvzf $ARCHIVE_LOCATION -T /etc/backup/small.includes -X /tmp/all.excludes.$NOW
+rm /tmp/all.excludes.$NOW
+
+echo "moving local backups that are older than $LOCAL_PRESERVE_TIME days to the recycle bin:"
+find $ARCHIVE_DIR -mtime +$LOCAL_PRESERVE_TIME -exec rm {} \;
+
+gpg -c $ARCHIVE_LOCATION
+rm $ARCHIVE_LOCATION

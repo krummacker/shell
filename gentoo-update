@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# -----------------------------------------------------------------------------
+# gentoo-update 
+# -----------------------------------------------------------------------------
+#
+# Updates the Gentoo installation.
+#
+
+emerge sync
+
+emerge -Duvp --newuse world
+echo -n "Hit ENTER to update above packages..."
+read
+emerge -Duv --newuse world
+
+dispatch-conf
+
+emerge -pv depclean
+echo -n "Hit ENTER to remove above packages..."
+read
+emerge -v depclean
+
+revdep-rebuild
+
+#distclean
+

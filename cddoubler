@@ -1,0 +1,88 @@
+#!/bin/sh
+#
+# cddoubler
+# =========
+#
+# Copies an audio CD to a CDR using the disk-at-once mechanism.
+#
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#
+# Author                Date         Changes
+# -------------------------------------------------------------------
+# Dirk Krummacker       Dec-05-1999  started coding
+# <dirk@krummacker.de>
+#
+
+# declaring some env variables
+WRITERDEV=/dev/sg1
+READERDEV=/dev/cdrom
+TEMPDIR=/tmp/cddoubler
+TOCFILE=$TEMPDIR/cd.toc
+AUDIOFILE=$TEMPDIR/audio.wav
+
+# checking parameters
+case $1 in
+    [s]  ) OPTION=simulate;;
+    [w]  ) OPTION=write;;
+    *    ) echo "usage: cddoubler [s|w]";exit;;
+esac
+
+# user dialog
+echo Please insert original CD into your cd writer...
+echo -n "[Press any key to continue] "
+read ANY
+
+# creating tmp dir
+rm -rf $TEMPDIR
+mkdir $TEMPDIR
+cd $TEMPDIR
+
+# reading the table of contents
+cdrdao read-toc --datafile audio.wav --device $WRITERDEV $TOCFILE
+
+# user dialog
+echo Please insert original CD into your cdrom drive and cdr into writer...
+echo -n "[Press any key to continue] "
+read ANY
+
+# reading the wav file
+cdparanoia "1-" $AUDIOFILE
+
+# Loop until no more copies are wanted
+while true
+do
+
+	# writing disk
+	cdrdao -XYZ $OPTION --eject --device $WRITERDEV $TOCFILE
+
+	# ask for another copy
+	echo -n "Do you want another copy of this disk [Y/N] ? "
+	read ANSWER
+	case $ANSWER in
+    	[yY]  ) ;;
+    	*     ) exit;;
+	esac
+
+	echo Please insert another cdr into writer...
+	echo -n "[Press any key to continue] "
+	read ANY		
+
+done
+
+# deleting tmp dir
+# rm -rf $TEMPDIR
+

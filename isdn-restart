@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# restart-isdn
+# ============
+
+# fährt die ISDN-Umgebung herunter und wieder herauf
+
+# Datum       Autor            Änderungen
+# -------------------------------------------------------------------------
+# 23.01.2000  Dirk Krummacker  Programm neu begonnen
+
+# Dienste herunterfahren
+/sbin/init.d/route stop
+/sbin/init.d/i4l stop
+/sbin/init.d/i4l_hardware stop
+
+# Dienste wieder starten
+sleep 1s
+/sbin/init.d/i4l_hardware start
+sleep 1s
+/sbin/init.d/i4l start
+sleep 1s
+/sbin/init.d/route start

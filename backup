@@ -1,0 +1,91 @@
+#!/bin/sh
+
+# backup
+# ======
+
+# regelmäßiges Backup aller Daten nach /backup
+
+# Autor             Datum        Änderungen
+# --------------------------------------------------------------------
+# Dirk Krummacker   16.04.2000   /usr & /usr/local aufgeteilt,
+#                                Zeilenumbrüche eingefügt
+# Dirk Krummacker   22.03.2000   logger durch echo ersetzt
+# Dirk Krummacker   22.02.2000   e2fsck mit vollem Pfad angegeben
+# Dirk Krummacker   22.01.2000   Log-Einträge anstelle von echo
+# Dirk Krummacker   16.01.2000   /home wird nicht mehr gesichert
+# Dirk Krummacker   10.10.1999   /opt wird jetzt auch gesichert
+# Dirk Krummacker   17.04.1999   /crypt wieder ausgegliedert nach
+#                                cryptbackup, ab sofort backup
+#                                automatisiert
+# Dirk Krummacker   14.02.1999   neue Struktur um /crypt angepaßt
+# Dirk Krummacker   07.02.1999   völlig neu überarbeitet
+
+echo "Backup gestartet..."
+
+# prüfen, ob /backup bereits gemountet
+if [ ! -f /backup/archiv-usr.tgz ] ; then
+    echo "Checke Backup-Partition..."
+    /sbin/e2fsck -n /dev/hda2 2>&1
+    echo "Mounte /backup..."
+    mount /backup 2>&1
+fi
+
+# Anzeige des Root-Directories
+ls -l / >/backup/rootdir.txt
+
+# Anzeige des Plattenverbrauchs
+df >/backup/df.txt
+
+echo "sichere /boot..."
+tar czp --atime-preserve --same-owner -p \
+        -f /backup/archiv-boot.tgz /boot 2>/dev/null
+
+echo "sichere /usr/local..."
+tar czp --atime-preserve --same-owner -p \
+        -f /backup/archiv-usr-local.tgz /usr/local 2>/dev/null
+
+echo "sichere /usr (ohne /usr/local)..."
+tar czp --atime-preserve --same-owner -p --exclude=/usr/local \
+        -f /backup/archiv-usr.tgz /usr 2>/dev/null
+
+echo "sichere /opt..."
+tar czp --atime-preserve --same-owner -p \
+        -f /backup/archiv-opt.tgz /opt 2>/dev/null
+
+echo "sichere /bin..."
+tar czp --atime-preserve --same-owner -p \
+        -f /backup/archiv-bin.tgz /bin 2>/dev/null
+
+echo "sichere /etc..."
+tar czp --atime-preserve --same-owner -p \
+        -f /backup/archiv-etc.tgz /etc 2>/dev/null
+
+echo "sichere /lib..."
+tar czp --atime-preserve --same-owner -p \
+        -f /backup/archiv-lib.tgz /lib 2>/dev/null
+
+echo "sichere /root..."
+tar czp --atime-preserve --same-owner -p \
+        -f /backup/archiv-root.tgz /root 2>/dev/null
+
+echo "sichere /sbin..."
+tar czp --atime-preserve --same-owner -p \
+        -f /backup/archiv-sbin.tgz /sbin 2>/dev/null
+
+echo "sichere /var..."
+tar czp --atime-preserve --same-owner -p \
+        -f /backup/archiv-var.tgz /var 2>/dev/null
+
+# ein paar Rechte setzen
+echo "Setze Rechte..."
+chmod 700 /backup
+chmod 600 /backup/*.tgz
+
+# derzeitige Belegung der Backup-Partition anzeigen
+df /backup
+
+# /backup wieder unmounten
+echo "Umounte /backup..."
+umount /backup
+
+echo "Fertig!"

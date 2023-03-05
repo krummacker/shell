@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+spawn telnet localhost
+expect "Login: "
+send "dirke\r"    ;# der Benutzername
+expect "Password: "
+send "julia4\r"       ;# das Passwort
+expect "\$ "
+send "nohup xosview &\r"
+expect "\$ "
+send "logout\r"

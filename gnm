@@ -1,0 +1,66 @@
+#!/bin/sh
+
+# gnm - Skript zum Abholen von Mails & News
+# =========================================
+
+# Datum:        17. April 1999
+# Autor:        Dirk Krummacker
+# Änderungen:   Anfrage an Zeitserver eingebaut, aus Startup herausgenommen
+
+# Datum:        28. Februar 1999
+# Autor:        Dirk Krummacker
+# Änderungen:   Java-Programm durch Shellscript abgelöst, sendmail eingebaut
+
+# Datum:        14. Februar 1999
+# Autor:        Dirk Krummacker
+# Änderungen:   Mail & News werden nur noch maximal alle 6h abgeholt
+
+# Datum:        12. Februar 1999
+# Autor:        Dirk Krummacker
+# Änderungen:   auf ISDN angepaßt
+
+# Datum:        13. Januar 1999
+# Autor:        Dirk Krummacker
+# Änderungen:   aus Zusammenlegen von ppp-start und modem-stop neu erzeugt
+
+# Einstellungen
+LASTFETCH=/var/incens/lastfetch
+
+# Datei löschen, wenn zu alt
+test -e $LASTFETCH && {
+    TIME="-cmin +360"
+    eval find $LASTFETCH $TIME | xargs --no-run-if-empty rm
+}
+
+# wenn keine Datei vorhanden, fetch ausführen und Datei setzen
+if test ! -e $LASTFETCH ; then
+
+    # zuerst Platz schaffen und den Newsserver aufräumen
+    su -l news -c "/usr/local/sbin/texpire 2>&1"
+
+    # Uhrzeit anpassen
+    /usr/sbin/netdate zeit.fu-berlin.de 2>&1
+    /sbin/hwclock --utc --systohc  2>&1
+
+    # Neue Postings holen
+    su news -l -c "/usr/local/sbin/fetch -n -vv 2>&1"
+
+    # Einsammeln der Mails per fetchmail - nur User dirke
+    su -l dirke -c "fetchmail -a -s -f /crypt/dirke/secret/.fetchmailrc 2>&1"
+
+    # Leeren der Mail-Queue, falls notwendig
+    sendmail -q  2>&1
+
+    # incens starten
+    /root/bin/incens 2>&1
+
+    # Datei setzen
+    touch $LASTFETCH
+
+else
+    
+    # nicht notwendig
+    echo "not yet neccessary to fetch mail and news"
+
+fi
+    

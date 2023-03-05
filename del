@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# -----------------------------------------------------------------------------
+# del
+# -----------------------------------------------------------------------------
+#
+# Deletes files by moving them into the ~/.junk directory.
+
+TRASH="${HOME}/.junk"
+CURRENT_DATE=`date +%Y%m%d`
+
+FoundFiles=no
+until [ "$1" = "" ]
+do
+  for f in $1
+  do
+    if [ -e $f ] ; then
+      FoundFiles=yes
+      echo "del: Moving file '$f' to junk yard"
+      FileName=`basename $f`
+      if [ -e $TRASH/$FileName ] ; then
+        mv -i $f $TRASH/$FileName\.$CURRENT_DATE-$$
+      else
+        mv -i $f $TRASH
+      fi
+    fi 
+  done
+  shift
+done
+
+if [ "$FoundFiles" = "no" ] ; then
+  echo "del: No files found"
+fi

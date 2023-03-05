@@ -1,0 +1,98 @@
+#!/bin/sh
+
+# incens
+# ======
+
+# zensiert Postings im leafnode
+
+# Datum        Autor             Änderungen
+# --------------------------------------------------------------------------
+# 17.01.2000   Dirk Krummacker   abermals neu installiert
+# 14.03.1999   Dirk Krummacker   Bug behoben, der die zensierten Postings
+#                                nach / verfrachtet hat
+# 14.02.1999   Dirk Krummacker   wieder neu installiert
+
+# Einstellungen
+TERMSFILE=/etc/incens/terms
+GROUPSFILE=/etc/incens/groups
+NEWSTEMPSPOOL=/tmp/newstemp_spool
+NEWSTEMPFINAL=/tmp/newstemp_final
+NEWSROOT=/var/spool/news
+DATESTRING=`date +"%y%m%d%H%M%S"`
+ARCHIVEDIR=/home/root/censored
+
+# Erstellen des temporaeren Archiv-Verzeichnisses
+rm -rf $NEWSTEMPFINAL 2>/dev/null
+mkdir $NEWSTEMPFINAL
+
+# Debugging
+echo $NEWSTEMPFINAL
+ls -l $NEWSTEMPFINAL
+
+# Schleife fuer jede Gruppe
+for GROUP in `cat $GROUPSFILE | cut -f 2` ; do
+
+   # Ausgabe des Gruppennamens
+   GRNUM=`cat $GROUPSFILE | grep $GROUP | cut -f 1`
+   echo Bearbeite Newsgroup $GROUP
+
+   # Schleife fuer jeden Begriff
+   for TERM in `cat $TERMSFILE | cut -f 2` ; do
+
+      # Ausgabe des zensierten Begriffs
+      NUMBER=`cat $TERMSFILE | grep $TERM | cut -f 1`
+
+      # Debugging
+      echo ... zensiere Begriff $TERM
+      echo ... mit Nummer $NUMBER
+
+      # Erstellen des Spoolverzeichnisses für diesen Begriff
+      rm -rf $NEWSTEMPSPOOL 2>/dev/null
+      mkdir $NEWSTEMPSPOOL
+
+      # Debugging
+      echo $NEWSTEMPSPOOL
+      ls -l $NEWSTEMPSPOOL
+
+      # Zensieren nach Headern
+      cat $NEWSROOT$GROUP/.overview | grep $TERM > $NEWSTEMPSPOOL/.overview.term
+      cat $NEWSROOT$GROUP/.overview | grep -v $TERM > $NEWSROOT$GROUP/.overview.censored
+
+      # Debugging
+      echo
+      # cat $NEWSROOT$GROUP/.overview
+      echo
+      cat $NEWSTEMPSPOOL/.overview.term
+      echo
+      cat $NEWSTEMPSPOOL/.overview.censored
+
+      # Heraussuchen der Postings
+      for NEWSNR in `cat $NEWSTEMPSPOOL/.overview.term | cut -f 1` ; do
+
+         cp $NEWSROOT$GROUP/$NEWSNR $NEWSTEMPSPOOL
+         echo ...... Entferne Posting $NEWSNR - Begriff $TERM
+         # rm $NEWSROOT$GROUP/$NEWSNR
+
+      done
+
+      # Updaten der .overview
+      # mv $NEWSROOT$GROUP/.overview.censored $NEWSROOT$GROUP/.overview
+
+      # Archivieren der Postings dieser Gruppe
+      cat $NEWSTEMPSPOOL/.* $NEWSTEMPSPOOL/* 2>/dev/null | gzip >$NEWSTEMPFINAL/z$DATESTRING-$GRNUM-$NUMBER.gz
+
+   done
+
+done
+
+# Kopieren der zensierten Daten nach ARCHIVE_DIR
+cp $NEWSTEMPFINAL/* $ARCHIVEDIR/
+
+# Loeschen aller temporaeren Daten
+rm -r $NEWSTEMPFINAL 2>/dev/null
+rm -r $NEWSTEMPSPOOL 2>/dev/null
+
+# Loeschen der Dateien ohne echte Postings
+for WASTEFILE in `ls -l $ARCHIVEDIR | grep "      20" | cut -c 56-86` ; do
+   rm $ARCHIVEDIR/$WASTEFILE
+done

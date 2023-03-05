@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# disk-backup
+# ===========
+
+# Sichern des aktuellen Backups
+
+# Datum:        8. Februar 1999
+# Autor:        Dirk Krummacker
+# Änderungen:   völlig neu überarbeitet
+
+echo "Backup auf Zip-Disk gestartet..."
+
+# Treiber aktivieren
+modprobe ppa
+
+# Backup-Partition mounten
+echo Mounte Backup-Partition...
+mount /backup
+
+# direkt auf die Zip-Disk "taren"
+tar cv --tape-length=98308 -f /dev/sdb /backup
+
+# /backup wieder umounten
+echo Unmounte Backup-Partition...
+umount /backup

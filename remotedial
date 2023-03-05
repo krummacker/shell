@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# remotedial
+# ==========
+
+# steuert das Hochfahren der Internet-Anbindung bei einem eingehenden
+# Anruf
+
+# Basiert auf Message-ID: <38897fc1.1858882972@golden-gate.bie>
+# von Uwe Bredemeier <uwe@call-n-deal.com>
+
+# Autor             Datum        Änderungen
+# --------------------------------------------------------------------
+# Dirk Krummacker   23.01.2000   Programm übernommen
+
+# Telefonnummern übernehmen
+FROM=$1
+TO=$2
+
+# Anrufende Nummer checken
+#    if [ "$FROM" != "+49172xxxxxxx" ]
+#    then
+#        exit
+#    fi
+
+# Wurde die Trigger-Telefonnummer benutzt?
+if [ "$TO" != "+4991152985410" ]
+then
+    exit
+fi
+
+# Internet-Verbindung starten
+{
+    echo "initiating call from: $FROM"
+    echo "initiating call to: $TO"
+    /usr/local/bin/dial
+} | logger -t remotedial
+

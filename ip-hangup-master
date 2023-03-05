@@ -1,0 +1,43 @@
+#!/bin/sh
+
+# ip-hangup-master
+# ================
+
+# führt für jeden User das Skriptb ~/.ip-hangup aus, so vorhanden
+
+# Copyright (C) 2000 by Dirk Krummacker
+
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   
+
+# Datum       Autor             Änderungen
+# -------------------------------------------------------------------------
+# 01.03.2000  Dirk Krummacker   aus "ip-down-master" neu erzeugt,
+#                               Lizenz angepaßt
+
+# Für jeden User das Skript ausführen
+{
+    echo "started checking for user defined tasks"
+    for USERDIR in /home/* ; do
+
+        test -e $USERDIR/.ip-hangup && {
+            USER=${USERDIR##*/}
+            echo "starting script $USERDIR/.ip-hangup"
+            su -l $USER -c $USERDIR/.ip-hangup | logger -t "ip-hangup($USER)"
+            echo "finished script $USERDIR/.ip-hangup"
+        }
+    done
+    echo "finished checking for user defined tasks"
+} | logger -t ip-hangup
+

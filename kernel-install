@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# -----------------------------------------------------------------------------
+# kernel-install
+# -----------------------------------------------------------------------------
+#
+# Installs a new kernel to boot.
+#
+
+if [ "$1" = "" ] ;
+then
+    echo "USAGE: kernel-install <KERNEL_NAME>"
+    echo "e.g. kernel-install 2.6.13-gentoo-r3-acpi"
+    exit
+fi
+
+# Mount the /boot partition
+mount /boot
+
+cp arch/i386/boot/bzImage /boot/kernel-$1
+cp System.map /boot/System.map-$1
+cp .config /boot/config-$1
+
+umount /boot

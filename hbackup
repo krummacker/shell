@@ -1,0 +1,58 @@
+#!/bin/sh
+
+# hbackup
+# =======
+
+# Sichern des aktuellen Backups auf CD-Recordables
+
+# Copyright (C) 1999 by Dirk Krummacker
+
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   
+
+# Autor             Datum        Änderungen
+# --------------------------------------------------------------------
+# Dirk Krummacker   16.01.2000   Aus cdr-backup neu erstellt.
+
+# Einstellungen
+VIRTUALDIR=/tmp/virtual
+IMAGE=$VIRTUALDIR/image
+
+# Zuerst Check, ob /home nicht mehr gemountet
+if [ -f /home/root/pap-secrets ] ; then
+    echo "/home ist noch gemountet: Abbruch!"
+    exit 1
+fi
+
+# Aufforderung zum Einlegen der CD
+echo "Bitte CD einlegen und <Return> drücken..."
+read
+
+# Erstellen eines Verzeichnisses für die virtuelle CD
+rm -rf $VIRTUALDIR
+mkdir $VIRTUALDIR
+
+# Kopieren der Partition in eine Image-Datei
+echo "Kopiere /home in eine Image-Datei ..."
+dd if=/dev/hda3 of=$IMAGE bs=1024k
+
+# Direkte Pipe von mkisofs nach cdrecord
+mkisofs -R $VIRTUALDIR | cdrecord dev=/dev/sg1 speed=4 -eject -
+
+# Image wieder löschen
+echo "Lösche temporäres Verzeichnis ..."
+rm -rf $VIRTUALDIR
+
+# fertig
+exit 0

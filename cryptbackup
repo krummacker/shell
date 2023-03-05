@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# cryptbackup
+# ===========
+
+# Backup der geheimen Daten nach /backup
+
+# Datum:        17. April 1999
+# Autor:        Dirk Krummacker
+# Änderungen:   aus backup ausgegliedert
+
+echo "cryptbackup gestartet..."
+
+# Packen aller geheimen Daten in ein Archiv nach /tmp
+echo "Packe geheime Daten in ein Archiv..."
+tar czp --atime-preserve --same-owner -p -f /tmp/archiv-crypt.tgz /crypt
+
+# verschlüsseln dieses Archives mit pgp
+echo "Verschluessele geheime Daten..."
+pgp -c /tmp/archiv-crypt.tgz
+
+# auslöschen der gepackten Geheimdaten
+echo "Vernichte altes Archiv mit geheimen Daten..."
+wipe -q -f /tmp/archiv-crypt.tgz
+
+# prüfen, ob /backup bereits gemountet
+if [ ! -f /backup/archiv-home.tgz ] ; then
+
+    echo "Mounte /backup..."
+
+    mount /backup
+
+fi
+
+# verschieben des Geheim-Archivs
+echo "Verschiebe verschluesselte Daten..."
+mv /tmp/archiv-crypt.tgz.pgp /backup/
+
+# Rechte setzen
+chmod 600 /backup/*.pgp
+
+# /backup wieder unmounten
+echo "Umounte /backup..."
+umount /backup
+
+echo "Fertig!"
