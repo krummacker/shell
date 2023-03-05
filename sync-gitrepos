@@ -2,8 +2,8 @@
 #
 # Clones my repos from GitLab and stores the newest commits to repos of the 
 # same name in GitHub and BitBucket. This is the behaviour when no command line
-# argument has been specified. If there is an argument then it denotes te repo 
-# to be synced.
+# argument has been specified. If an argument is specified then it will be 
+# interpreted as the repo to be synced.
 
 function sync_repo() {
     git clone git@gitlab.com:dirk.krummacker/$1.git
@@ -37,6 +37,7 @@ then
         NetSorter
         PrimeAnalyzer
         sorter
+        shell
     )
     for name in "${values[@]}"; do
         sync_repo $name
