@@ -38,6 +38,7 @@ then
         PrimeAnalyzer
         sorter
         shell
+        PackageDependencies
     )
     for name in "${values[@]}"; do
         sync_repo $name
